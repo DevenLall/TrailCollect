@@ -1,6 +1,8 @@
 # TrailCollect
 You collect trails/hikes you do
 
+*Features*
+
 -using barometer on phone
 -offline location tracking
 -google maps api
