@@ -1,10 +1,12 @@
 # TrailCollect
 You collect trails/hikes you do
 
--using barometer on phone
--offline location tracking
--google maps api
--some sort of geolocation api for the hikes
--some sort of database, probably supabase
--profile and badge showcases
+# Features
+
+- **using barometer on phone**
+- **offline location tracking**
+- **google maps api**
+- **some sort of geolocation api for the hikes**
+- **some sort of database, probably supabase**
+- **profile and badge showcases**
 
