@@ -4,14 +4,17 @@ import { StyleSheet, Text, View, Image } from 'react-native';
 
 
 export default function App() {
+  //font of trailcollect wordmark
   const [fontsLoaded] = useFonts({
     BowlbyOneSC_400Regular,
   });
 
+  //if cant load font, return null to avoid rendering the app
   if (!fontsLoaded) {
     return null;
   }
 
+  //return the main view of the app with the icon, wordmark, and tagline
   return (
     <View style={styles.container}>
       <Image source={require('./assets/trailcollect-icon.png')} style={styles.icon} />
@@ -21,7 +24,7 @@ export default function App() {
     </View>
   );
 }
-
+//styles for the app
 const styles = StyleSheet.create({
   container: {
     flex: 1,
