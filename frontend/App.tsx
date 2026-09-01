@@ -1,51 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
-import { useFonts, BowlbyOneSC_400Regular } from '@expo-google-fonts/bowlby-one-sc';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import SplashScreen from './screens/SplashScreen';
+import LoadingScreen from './screens/LoadingScreen';
 
+// Lists every screen this navigator knows about with what data 
+// each one expects when you navigate to it. "undefined" means no data needed.
+export type RootStackParamList = {
+  Splash: undefined;
+  Loading: undefined;
+};
+
+// Creates a stack navigator, to list the pages in order in the stack
+// typed against our param list above.
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  //font of trailcollect wordmark
-  const [fontsLoaded] = useFonts({
-    BowlbyOneSC_400Regular,
-  });
-
-  //if cant load font, return null to avoid rendering the app
-  if (!fontsLoaded) {
-    return null;
-  }
-
-  //return the main view of the app with the icon, wordmark, and tagline
   return (
-    <View style={styles.container}>
-      <Image source={require('./assets/trailcollect-icon.png')} style={styles.icon} />
-      <Text style={styles.wordmark}>TrailCollect</Text>
-      <Text style={styles.tagline}>Collect Every Trail</Text>
-      <StatusBar style="dark" />
-    </View>
+    // Required top-level wrapper — manages navigation state for the whole app.
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Splash" // which screen shows first on launch
+        screenOptions={{ headerShown: false }} // hide the default header bar — our screens are fully custom designs
+      >
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Loading" component={LoadingScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-//styles for the app
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#C4C6E7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {
-  width: 96,
-  height: 96,
-  marginBottom: 24,
-  resizeMode: 'contain',
-},
-  wordmark: {
-    fontSize: 36,
-    fontFamily: 'BowlbyOneSC_400Regular',
-    color: '#011627',
-    marginBottom: 6,
-  },
-  tagline: {
-    fontSize: 14,
-    color: '#011627',
-  },
-});
