@@ -18,7 +18,7 @@ export default function LoadingScreen({ navigation }: Props) {
   }, []);
 
   const handleSignUpComplete = () => {
-    navigation.replace('Permissions');
+    navigation.replace('ProfileCreation');
   };
 
   return (
