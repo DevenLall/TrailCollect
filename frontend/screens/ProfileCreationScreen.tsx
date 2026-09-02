@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TextInput, Pressable, Alert, ScrollView } from 
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
+import { supabase } from '../lib/supabase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileCreation'>;
 
@@ -10,20 +11,47 @@ export default function ProfileCreationScreen({ navigation }: Props) {
   const [fullName, setFullName] = useState('');
   const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (fullName.trim() === '' || age.trim() === '') {
       Alert.alert('Missing information', 'Please enter your full name and age to continue.');
       return;
     }
 
     const ageNumber = Number(age);
-    if (isNaN(ageNumber) || ageNumber < 18) {
-      Alert.alert('Age requirement', 'You must be 18 or older to use this service.');
+    if (isNaN(ageNumber) || ageNumber < 15) {
+      Alert.alert('Age requirement', 'You must be 15 or older to use this service.');
       return;
     }
 
-    navigation.replace('Permissions');
+    setLoading(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      setLoading(false);
+      Alert.alert('Not signed in', 'Something went wrong — please sign up again.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        full_name: fullName.trim(),
+        age: ageNumber,
+        bio: bio.trim() || null,
+      })
+      .eq('id', user.id);
+
+    setLoading(false);
+
+    if (error) {
+      Alert.alert('Save failed', error.message);
+      return;
+    }
+
+    navigation.navigate('Permissions');
   };
 
   return (
@@ -90,8 +118,8 @@ export default function ProfileCreationScreen({ navigation }: Props) {
         numberOfLines={4}
       />
 
-      <Pressable style={styles.button} onPress={handleSaveProfile}>
-        <Text style={styles.buttonText}>Save Profile</Text>
+      <Pressable style={styles.button} onPress={handleSaveProfile} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
       </Pressable>
     </ScrollView>
   );

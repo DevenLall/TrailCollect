@@ -1,12 +1,56 @@
-import { StyleSheet, Text, View, Image, Pressable, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
+import { supabase } from '../lib/supabase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
+type Profile = {
+  full_name: string | null;
+  bio: string | null;
+  completed_count: number;
+  total_km: number;
+  badge_count: number;
+};
+
 export default function HomeScreen({ navigation }: Props) {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, bio, completed_count, total_km, badge_count')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data) {
+        setProfile(data);
+      }
+      setLoading(false);
+    };
+
+    loadProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#011627" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.topSection}>
@@ -23,7 +67,7 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={styles.avatarCircle}>
           <Ionicons name="person" size={40} color="#FFFFFF" />
         </View>
-        <Text style={styles.name}>DEVEN LALL</Text>
+        <Text style={styles.name}>{profile?.full_name ? profile.full_name.toUpperCase() : 'EXPLORER'}</Text>
         <View style={styles.levelBadge}>
           <Ionicons name="star" size={12} color="#FFFFFF" />
           <Text style={styles.levelBadgeText}>Trailhead Wanderer  lvl 1</Text>
@@ -33,24 +77,24 @@ export default function HomeScreen({ navigation }: Props) {
       <ScrollView style={styles.bottomSection} contentContainerStyle={styles.bottomContent}>
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statValue}>{profile?.completed_count ?? 0}</Text>
             <Text style={styles.statLabel}>COMPLETED</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statValue}>{profile?.total_km ?? 0}</Text>
             <Text style={styles.statLabel}>TOTAL KM</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>0</Text>
+            <Text style={styles.statValue}>{profile?.badge_count ?? 0}</Text>
             <Text style={styles.statLabel}>BADGES</Text>
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>ABOUT EXPLORER</Text>
         <View style={styles.bioCard}>
-          <Text style={styles.bioText}>This is my bio!</Text>
+          <Text style={styles.bioText}>{profile?.bio || 'No bio yet.'}</Text>
         </View>
 
         <View style={styles.sectionRow}>
@@ -68,6 +112,7 @@ export default function HomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#C4C6E7' },
+  loadingContainer: { flex: 1, backgroundColor: '#C4C6E7', alignItems: 'center', justifyContent: 'center' },
   topSection: { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 24 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 24 },
   iconButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },

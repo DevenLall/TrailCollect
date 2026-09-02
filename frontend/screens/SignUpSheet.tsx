@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View, Image, Modal, TextInput, Pressable, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
 
 type Props = {
   visible: boolean;
@@ -14,18 +15,28 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleCreateAccount = () => {
-    if (email.trim() === '' || password.trim() === '') {
-      Alert.alert('Missing information', 'Please enter an email and password to continue.');
+  const handleCreateAccount = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Missing Information', 'Please enter both an email and password.');
       return;
     }
-
     if (!agreed) {
-      Alert.alert('Terms required', 'You must agree to the Terms of Service and Privacy Policy to continue.');
+      Alert.alert('Terms Required', 'You must agree to the Terms of Service & Privacy Policy to continue.');
       return;
     }
 
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert('Sign Up Failed', error.message);
+      return;
+    }
     onSubmit();
   };
 
@@ -85,8 +96,8 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
               </Text>
             </View>
 
-            <Pressable style={styles.button} onPress={handleCreateAccount}>
-              <Text style={styles.buttonText}>Create Account</Text>
+            <Pressable style={styles.button} onPress={handleCreateAccount} disabled={loading}>
+              <Text style={styles.buttonText}>{loading ? 'Creating Account...' : 'Create Account'}</Text>
             </Pressable>
 
             <View style={styles.dividerRow}>
