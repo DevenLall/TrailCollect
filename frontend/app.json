@@ -2,12 +2,16 @@
   "expo": {
     "name": "frontend",
     "slug": "frontend",
+    "scheme": "trailcollect",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMotionUsageDescription": "TrailCollect uses the barometer to track your elevation while you hike."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +26,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "TrailCollect uses your location to record your path and calculate trail statistics while you hike."
+        }
+      ],
+      "expo-web-browser"
     ]
   }
 }

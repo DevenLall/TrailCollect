@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { StyleSheet, Text, View, Image, Modal, TextInput, Pressable, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
+
+WebBrowser.maybeCompleteAuthSession();
 
 type Props = {
   visible: boolean;
@@ -39,6 +43,44 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
     }
     onSubmit();
   };
+
+  const handleGoogleSignIn = async () => {
+  const redirectTo = Linking.createURL('/');
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error) {
+    Alert.alert('Google Sign-In Failed', error.message);
+    return;
+  }
+
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+  if (result.type === 'success') {
+    const url = new URL(result.url);
+    const code = url.searchParams.get('code');
+
+    if (!code) {
+      Alert.alert('Google Sign-In Failed', 'No authorization code was returned.');
+      return;
+    }
+
+    const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (sessionError) {
+      Alert.alert('Google Sign-In Failed', sessionError.message);
+      return;
+    }
+
+    onSubmit();
+  }
+};
 
   return (
     <>
@@ -107,7 +149,7 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
             </View>
 
             <View style={styles.socialRow}>
-              <Pressable style={styles.socialButton}>
+              <Pressable style={styles.socialButton} onPress={handleGoogleSignIn}>
                 <Text style={styles.socialButtonText}>Google</Text>
               </Pressable>
               <Pressable style={styles.socialButton}>

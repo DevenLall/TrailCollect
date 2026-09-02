@@ -1,16 +1,60 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View, Image, Switch, Pressable, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, Image, Switch, Pressable, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import { Barometer } from 'expo-sensors';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Permissions'>;
 
 export default function PermissionsScreen({ navigation }: Props) {
-  const [locationEnabled, setLocationEnabled] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(false);
   const [motionEnabled, setMotionEnabled] = useState(false);
 
+  useEffect(() => {
+    const checkExistingPermissions = async () => {
+      const locationStatus = await Location.getForegroundPermissionsAsync();
+      setLocationEnabled(locationStatus.status === 'granted');
+
+      const motionStatus = await Barometer.getPermissionsAsync();
+      setMotionEnabled(motionStatus.status === 'granted');
+    };
+
+    checkExistingPermissions();
+  }, []);
+
   const allPermissionsEnabled = locationEnabled && motionEnabled;
+
+  const handleLocationToggle = async (value: boolean) => {
+    if (value) {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationEnabled(status === 'granted');
+      if (status !== 'granted') {
+        Alert.alert(
+          'Location Permission Needed',
+          'TrailCollect needs location access to track your hikes. You can enable it in your phone settings.'
+        );
+      }
+    } else {
+      setLocationEnabled(false);
+    }
+  };
+
+  const handleMotionToggle = async (value: boolean) => {
+    if (value) {
+      const { status } = await Barometer.requestPermissionsAsync();
+      setMotionEnabled(status === 'granted');
+      if (status !== 'granted') {
+        Alert.alert(
+          'Motion & Fitness Permission Needed',
+          'TrailCollect needs motion access to track elevation using the barometer. You can enable it in your phone settings.'
+        );
+      }
+    } else {
+      setMotionEnabled(false);
+    }
+  };
 
   const handleContinue = () => {
     navigation.replace('Home');
@@ -43,7 +87,7 @@ export default function PermissionsScreen({ navigation }: Props) {
             Allows the app to record your path, calculate trail statistics, and track your altitude as you explore.
           </Text>
         </View>
-        <Switch value={locationEnabled} onValueChange={setLocationEnabled} trackColor={{ false: '#D1D5DB', true: '#22C55E' }} />
+        <Switch value={locationEnabled} onValueChange={handleLocationToggle} trackColor={{ false: '#D1D5DB', true: '#22C55E' }} />
       </View>
       <View style={styles.permissionRow}>
         <Ionicons name="pulse-outline" size={20} color="#011627" />
@@ -53,7 +97,7 @@ export default function PermissionsScreen({ navigation }: Props) {
             Allows the app to use the barometer sensor, used to track your elevation when hiking.
           </Text>
         </View>
-        <Switch value={motionEnabled} onValueChange={setMotionEnabled} trackColor={{ false: '#D1D5DB', true: '#22C55E' }} />
+        <Switch value={motionEnabled} onValueChange={handleMotionToggle} trackColor={{ false: '#D1D5DB', true: '#22C55E' }} />
       </View>
       <Pressable
         style={[styles.button, !allPermissionsEnabled && styles.buttonDisabled]}
