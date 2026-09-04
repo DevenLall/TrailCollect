@@ -46,6 +46,7 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
 
   const handleGoogleSignIn = async () => {
   const redirectTo = Linking.createURL('/');
+  console.log('REDIRECT TO:', redirectTo);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -61,6 +62,7 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
   }
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+  console.log('AUTH SESSION RESULT:', result);
 
   if (result.type === 'success') {
     const url = new URL(result.url);
@@ -80,6 +82,9 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
 
     onSubmit();
   }
+  else {
+  Alert.alert('Google Sign-In', `Sign-in did not complete (${result.type}).`);
+}
 };
 
   return (
