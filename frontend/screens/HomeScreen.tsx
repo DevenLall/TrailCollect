@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -16,9 +16,13 @@ type Profile = {
   badge_count: number;
 };
 
+const PANEL_WIDTH = 260;
+
 export default function HomeScreen({ navigation }: Props) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(PANEL_WIDTH)).current;
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -43,6 +47,29 @@ export default function HomeScreen({ navigation }: Props) {
     loadProfile();
   }, []);
 
+  const openSettings = () => {
+    setSettingsVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeSettings = () => {
+    Animated.timing(slideAnim, {
+      toValue: PANEL_WIDTH,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setSettingsVisible(false));
+  };
+
+  const handleLogout = async () => {
+    closeSettings();
+    await supabase.auth.signOut();
+    navigation.replace('Loading');
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
@@ -59,7 +86,7 @@ export default function HomeScreen({ navigation }: Props) {
             <Ionicons name="chevron-back" size={20} color="#011627" />
           </Pressable>
           <Text style={styles.headerTitle}>Explorer Profile</Text>
-          <Pressable style={styles.iconButton} hitSlop={10}>
+          <Pressable style={styles.iconButton} onPress={openSettings} hitSlop={10}>
             <Ionicons name="settings-outline" size={20} color="#011627" />
           </Pressable>
         </View>
@@ -106,6 +133,27 @@ export default function HomeScreen({ navigation }: Props) {
 
         <Text style={styles.sectionTitle}>RECENT COMPLETED TRAILS</Text>
       </ScrollView>
+
+      <Modal visible={settingsVisible} transparent animationType="none" onRequestClose={closeSettings}>
+        <View style={styles.settingsOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={closeSettings} />
+          <Animated.View style={[styles.settingsPanel, { transform: [{ translateX: slideAnim }] }]}>
+            <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+              <View style={styles.settingsHeader}>
+                <Text style={styles.settingsTitle}>Settings</Text>
+                <Pressable onPress={closeSettings} hitSlop={10}>
+                  <Ionicons name="close" size={22} color="#011627" />
+                </Pressable>
+              </View>
+
+              <Pressable style={styles.logoutButton} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={18} color="#DC2626" />
+                <Text style={styles.logoutText}>Log Out</Text>
+              </Pressable>
+            </SafeAreaView>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -144,4 +192,17 @@ const styles = StyleSheet.create({
   bioText: { fontSize: 14, color: '#374151' },
   sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   viewAll: { fontSize: 13, color: '#4B5563', fontWeight: '500' },
+  settingsOverlay: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
+  settingsPanel: { width: PANEL_WIDTH, backgroundColor: '#FFFFFF', height: '100%' },
+  settingsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  settingsTitle: { fontSize: 17, fontWeight: 'bold', color: '#011627' },
+  logoutButton: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingVertical: 14 },
+  logoutText: { fontSize: 15, fontWeight: '600', color: '#DC2626' },
 });

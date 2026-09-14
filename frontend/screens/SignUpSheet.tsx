@@ -2,18 +2,17 @@ import { useState } from 'react';
 import { StyleSheet, Text, View, Image, Modal, TextInput, Pressable, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
-
-WebBrowser.maybeCompleteAuthSession();
+import { signInWithOAuthProvider } from '../lib/oauth';
 
 type Props = {
   visible: boolean;
   onSubmit: () => void;
+  onPasswordVerified: (email: string) => void;
+  onSwitchToLogin: () => void;
 };
 
-export default function SignUpSheet({ visible, onSubmit }: Props) {
+export default function SignUpSheet({ visible, onSubmit, onPasswordVerified, onSwitchToLogin }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,51 +40,17 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
       Alert.alert('Sign Up Failed', error.message);
       return;
     }
-    onSubmit();
+    onPasswordVerified(email.trim());
   };
 
   const handleGoogleSignIn = async () => {
-  const redirectTo = Linking.createURL('/');
-  console.log('REDIRECT TO:', redirectTo);
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo,
-      skipBrowserRedirect: true,
-    },
-  });
-
-  if (error) {
-    Alert.alert('Google Sign-In Failed', error.message);
-    return;
-  }
-
-  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-  console.log('AUTH SESSION RESULT:', result);
-
-  if (result.type === 'success') {
-    const url = new URL(result.url);
-    const code = url.searchParams.get('code');
-
-    if (!code) {
-      Alert.alert('Google Sign-In Failed', 'No authorization code was returned.');
-      return;
+    try {
+      await signInWithOAuthProvider('google');
+      onSubmit();
+    } catch (err) {
+      Alert.alert('Google Sign-In Failed', err instanceof Error ? err.message : 'Something went wrong.');
     }
-
-    const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (sessionError) {
-      Alert.alert('Google Sign-In Failed', sessionError.message);
-      return;
-    }
-
-    onSubmit();
-  }
-  else {
-  Alert.alert('Google Sign-In', `Sign-in did not complete (${result.type}).`);
-}
-};
+  };
 
   return (
     <>
@@ -157,8 +122,12 @@ export default function SignUpSheet({ visible, onSubmit }: Props) {
               <Pressable style={styles.socialButton} onPress={handleGoogleSignIn}>
                 <Text style={styles.socialButtonText}>Google</Text>
               </Pressable>
-              <Pressable style={styles.socialButton}>
-                <Text style={styles.socialButtonText}>Strava</Text>
+            </View>
+
+            <View style={styles.switchRow}>
+              <Text style={styles.switchText}>Already have an account? </Text>
+              <Pressable onPress={onSwitchToLogin}>
+                <Text style={styles.switchLink}>Log In</Text>
               </Pressable>
             </View>
           </View>
@@ -229,6 +198,9 @@ const styles = StyleSheet.create({
   socialRow: { flexDirection: 'row', gap: 12 },
   socialButton: { flex: 1, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   socialButtonText: { fontSize: 14, fontWeight: '600', color: '#011627' },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
+  switchText: { fontSize: 13, color: '#6B7280' },
+  switchLink: { fontSize: 13, color: '#2563EB', fontWeight: '600' },
   termsContainer: { flex: 1, backgroundColor: '#FFFFFF' },
   termsHeader: {
     flexDirection: 'row',

@@ -37,12 +37,12 @@ export default function ProfileCreationScreen({ navigation }: Props) {
 
     const { error } = await supabase
       .from('profiles')
-      .update({
+      .upsert({
+        id: user.id,
         full_name: fullName.trim(),
         age: ageNumber,
         bio: bio.trim() || null,
-      })
-      .eq('id', user.id);
+      });
 
     setLoading(false);
 

@@ -2,6 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './screens/SplashScreen';
 import LoadingScreen from './screens/LoadingScreen';
+import OtpScreen from './screens/OtpScreen';
 import ProfileCreationScreen from './screens/ProfileCreationScreen';
 import PermissionsScreen from './screens/PermissionsScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -9,6 +10,7 @@ import HomeScreen from './screens/HomeScreen';
 export type RootStackParamList = {
   Splash: undefined;
   Loading: undefined;
+  Otp: { email: string; origin: 'signup' | 'login' };
   ProfileCreation: undefined;
   Permissions: undefined;
   Home: undefined;
@@ -22,6 +24,7 @@ export default function App() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Loading" component={LoadingScreen} />
+        <Stack.Screen name="Otp" component={OtpScreen} />
         <Stack.Screen name="ProfileCreation" component={ProfileCreationScreen} />
         <Stack.Screen name="Permissions" component={PermissionsScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
