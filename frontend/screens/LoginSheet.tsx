@@ -1,5 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, Image, Modal, TextInput, Pressable, Alert } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Modal,
+  TextInput,
+  Pressable,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { signInWithOAuthProvider } from '../lib/oauth';
@@ -49,8 +61,17 @@ export default function LoginSheet({ visible, onSubmit, onPasswordVerified, onSw
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.backdrop}>
-        <View style={styles.card}>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          style={styles.cardScroll}
+          contentContainerStyle={styles.card}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
           <View style={styles.cardHeader}>
             <Image source={require('../assets/trailcollect-icon.png')} style={styles.cardIcon} />
             <Text style={styles.cardWordmark}>TRAILCOLLECT</Text>
@@ -111,14 +132,15 @@ export default function LoginSheet({ visible, onSubmit, onPasswordVerified, onSw
               <Text style={styles.switchLink}>Sign Up</Text>
             </Pressable>
           </View>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end' },
+  cardScroll: { flexGrow: 0, maxHeight: '90%' },
   card: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,

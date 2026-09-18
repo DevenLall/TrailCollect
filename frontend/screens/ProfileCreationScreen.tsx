@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Pressable, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
@@ -55,73 +55,75 @@ export default function ProfileCreationScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={20} color="#011627" />
-        </Pressable>
-        <View style={styles.stepBadge}>
-          <Text style={styles.stepBadgeText}>Step 1 of 2</Text>
-        </View>
-      </View>
-
-      <Text style={styles.title}>Create Your Profile</Text>
-      <Text style={styles.subtitle}>
-        Let others get to know you better. You can edit these details anytime later in settings.
-      </Text>
-
-      <View style={styles.photoSection}>
-        <View style={styles.photoCircle}>
-          <Ionicons name="person" size={40} color="#9CA3AF" />
-          <View style={styles.cameraBadge}>
-            <Ionicons name="camera" size={14} color="#FFFFFF" />
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={20} color="#011627" />
+          </Pressable>
+          <View style={styles.stepBadge}>
+            <Text style={styles.stepBadgeText}>Step 1 of 2</Text>
           </View>
         </View>
-        <Text style={styles.photoLabel}>Upload Photo</Text>
-        <Text style={styles.photoHint}>JPG, PNG up to 5MB</Text>
-      </View>
 
-      <Text style={styles.label}>Full Name *</Text>
-      <View style={styles.inputWrapper}>
-        <Ionicons name="person-outline" size={18} color="#6B7280" />
+        <Text style={styles.title}>Create Your Profile</Text>
+        <Text style={styles.subtitle}>
+          Let others get to know you better. You can edit these details anytime later in settings.
+        </Text>
+
+        <View style={styles.photoSection}>
+          <View style={styles.photoCircle}>
+            <Ionicons name="person" size={40} color="#9CA3AF" />
+            <View style={styles.cameraBadge}>
+              <Ionicons name="camera" size={14} color="#FFFFFF" />
+            </View>
+          </View>
+          <Text style={styles.photoLabel}>Upload Photo</Text>
+          <Text style={styles.photoHint}>JPG, PNG up to 5MB</Text>
+        </View>
+
+        <Text style={styles.label}>Full Name *</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="person-outline" size={18} color="#6B7280" />
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Deven Lall"
+            placeholderTextColor="#9CA3AF"
+            value={fullName}
+            onChangeText={setFullName}
+          />
+        </View>
+
+        <Text style={styles.label}>Age *</Text>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="calendar-outline" size={18} color="#6B7280" />
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. 21"
+            placeholderTextColor="#9CA3AF"
+            value={age}
+            onChangeText={setAge}
+            keyboardType="number-pad"
+          />
+        </View>
+        <Text style={styles.ageHint}>You must be 18 or older to use this service</Text>
+
+        <Text style={styles.label}>Bio</Text>
         <TextInput
-          style={styles.input}
-          placeholder="e.g. Deven Lall"
+          style={styles.bioInput}
+          placeholder="Tell us a bit about yourself, your hobbies, and what brings you here..."
           placeholderTextColor="#9CA3AF"
-          value={fullName}
-          onChangeText={setFullName}
+          value={bio}
+          onChangeText={setBio}
+          multiline
+          numberOfLines={4}
         />
-      </View>
 
-      <Text style={styles.label}>Age *</Text>
-      <View style={styles.inputWrapper}>
-        <Ionicons name="calendar-outline" size={18} color="#6B7280" />
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. 21"
-          placeholderTextColor="#9CA3AF"
-          value={age}
-          onChangeText={setAge}
-          keyboardType="number-pad"
-        />
-      </View>
-      <Text style={styles.ageHint}>You must be 18 or older to use this service</Text>
-
-      <Text style={styles.label}>Bio</Text>
-      <TextInput
-        style={styles.bioInput}
-        placeholder="Tell us a bit about yourself, your hobbies, and what brings you here..."
-        placeholderTextColor="#9CA3AF"
-        value={bio}
-        onChangeText={setBio}
-        multiline
-        numberOfLines={4}
-      />
-
-      <Pressable style={styles.button} onPress={handleSaveProfile} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable style={styles.button} onPress={handleSaveProfile} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

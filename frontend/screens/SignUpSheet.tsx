@@ -1,5 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, Image, Modal, TextInput, Pressable, Alert, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Modal,
+  TextInput,
+  Pressable,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
@@ -55,8 +67,17 @@ export default function SignUpSheet({ visible, onSubmit, onPasswordVerified, onS
   return (
     <>
       <Modal visible={visible} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <View style={styles.card}>
+        <KeyboardAvoidingView
+          style={styles.backdrop}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView
+            style={styles.cardScroll}
+            contentContainerStyle={styles.card}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
             <View style={styles.cardHeader}>
               <Image source={require('../assets/trailcollect-icon.png')} style={styles.cardIcon} />
               <Text style={styles.cardWordmark}>TRAILCOLLECT</Text>
@@ -130,8 +151,8 @@ export default function SignUpSheet({ visible, onSubmit, onPasswordVerified, onS
                 <Text style={styles.switchLink}>Log In</Text>
               </Pressable>
             </View>
-          </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
 
       <Modal visible={showTerms} animationType="slide">
@@ -159,6 +180,7 @@ export default function SignUpSheet({ visible, onSubmit, onPasswordVerified, onS
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end' },
+  cardScroll: { flexGrow: 0, maxHeight: '90%' },
   card: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,
